@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Polymarket 与预测市场深度分析报告：校订版</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    :root {
+      --bg: #f7f8fa;
+      --paper: #ffffff;
+      --band: #eef3f7;
+      --line: #cfd8e3;
+      --text: #142033;
+      --muted: #526173;
+      --soft: #718096;
+      --blue: #1f5fbf;
+      --blue-soft: #dbeafe;
+      --green: #11795a;
+      --amber: #9a5b00;
+      --red: #b42318;
+      --code: #102033;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      line-height: 1.78;
+      font-size: 16px;
+    }
+    a { color: var(--blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 12px 24px;
+      background: rgba(247, 248, 250, .96);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(10px);
+    }
+    .brand { font-weight: 800; color: var(--blue); font-size: 14px; }
+    .nav-links { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--soft); }
+    .layout {
+      display: grid;
+      grid-template-columns: 236px minmax(0, 880px);
+      gap: 0;
+      max-width: 1220px;
+      margin: 0 auto;
+    }
+    .toc {
+      position: sticky;
+      top: 58px;
+      height: calc(100vh - 58px);
+      padding: 24px 14px;
+      overflow-y: auto;
+      border-right: 1px solid var(--line);
+    }
+    .toc-title {
+      margin: 0 0 10px;
+      padding-left: 8px;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--soft);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .toc a {
+      display: block;
+      padding: 6px 8px;
+      border-left: 2px solid transparent;
+      border-radius: 4px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    .toc a:hover { background: var(--blue-soft); color: var(--blue); border-left-color: var(--blue); text-decoration: none; }
+    main { padding: 46px 42px 80px; }
+    .header {
+      padding-bottom: 28px;
+      margin-bottom: 34px;
+      border-bottom: 2px solid var(--line);
+    }
+    .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+    .tag {
+      padding: 4px 10px;
+      background: var(--blue-soft);
+      color: #174a95;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    h1 {
+      margin: 0 0 12px;
+      font-size: 34px;
+      line-height: 1.22;
+      letter-spacing: 0;
+    }
+    .subtitle { margin: 0 0 16px; color: var(--muted); font-size: 18px; }
+    .meta { color: var(--soft); font-size: 13px; }
+    h2 {
+      margin: 48px 0 16px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--blue-soft);
+      font-size: 23px;
+      line-height: 1.35;
+      scroll-margin-top: 80px;
+    }
+    h3 {
+      margin: 30px 0 10px;
+      font-size: 18px;
+      line-height: 1.35;
+      scroll-margin-top: 80px;
+    }
+    p { margin: 0 0 16px; color: var(--muted); }
+    strong { color: var(--text); }
+    ul, ol { margin: 12px 0 20px; padding-left: 24px; color: var(--muted); }
+    li { margin: 5px 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 18px 0 28px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      font-size: 14px;
+    }
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+      text-align: left;
+    }
+    th { background: #1f3f73; color: #fff; font-weight: 700; }
+    tr:nth-child(even) td { background: #f3f6f9; }
+    .note {
+      margin: 18px 0 24px;
+      padding: 14px 16px;
+      border-left: 4px solid var(--blue);
+      background: #eef5ff;
+      color: #28435f;
+    }
+    .warning { border-left-color: var(--amber); background: #fff7e6; color: #5c421c; }
+    .danger { border-left-color: var(--red); background: #fff1f0; color: #6d2824; }
+    .good { border-left-color: var(--green); background: #eefaf6; color: #244c40; }
+    .score {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin: 18px 0 26px;
+    }
+    .metric {
+      padding: 12px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+    }
+    .metric b { display: block; font-size: 20px; color: var(--text); }
+    .metric span { display: block; margin-top: 3px; color: var(--soft); font-size: 13px; line-height: 1.4; }
+    pre {
+      padding: 16px 18px;
+      overflow-x: auto;
+      border-radius: 6px;
+      background: var(--code);
+      color: #dbeafe;
+      font-family: var(--mono);
+      font-size: 13px;
+      line-height: 1.65;
+    }
+    .source-list li { word-break: break-word; }
+    footer {
+      margin-top: 56px;
+      padding-top: 22px;
+      border-top: 1px solid var(--line);
+      color: var(--soft);
+      font-size: 13px;
+    }
+    @media (max-width: 980px) {
+      .layout { display: block; }
+      .toc { display: none; }
+      main { padding: 32px 20px 64px; }
+      h1 { font-size: 28px; }
+      .score { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      table { display: block; overflow-x: auto; white-space: nowrap; }
+    }
+    @media (max-width: 560px) {
+      .nav { align-items: flex-start; flex-direction: column; padding: 10px 16px; }
+      .score { grid-template-columns: 1fr; }
+      h1 { font-size: 24px; }
+      .subtitle { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <a class="brand" href="../">Polymarket 深度分析</a>
+    <div class="nav-links">
+      <a href="#audit">事实校订</a>
+      <a href="#market">市场判断</a>
+      <a href="#ideas">产品机会</a>
+      <a href="#agentport">AgentPort</a>
+      <a href="#gtm">推广运营</a>
+    </div>
+  </nav>
+
+  <div class="layout">
+    <aside class="toc">
+      <p class="toc-title">目录</p>
+      <a href="#summary">摘要</a>
+      <a href="#audit">一、事实校订</a>
+      <a href="#market">二、市场与业务判断</a>
+      <a href="#risk">三、风险与监管</a>
+      <a href="#depth">四、还应补充的深度</a>
+      <a href="#ideas">五、产品机会</a>
+      <a href="#agentport">六、AgentPort 可行性</a>
+      <a href="#product">七、产品方案</a>
+      <a href="#gtm">八、推广与运营</a>
+      <a href="#roadmap">九、路线图</a>
+      <a href="#sources">资料来源</a>
+    </aside>
+
+    <main>
+      <header class="header">
+        <div class="tags">
+          <span class="tag">Polymarket</span>
+          <span class="tag">预测市场</span>
+          <span class="tag">事实校订版</span>
+          <span class="tag">AgentPort</span>
+          <span class="tag">X402</span>
+        </div>
+        <h1>Polymarket 与预测市场深度分析报告：校订版</h1>
+        <p class="subtitle">从事实核查、市场结构、监管风险到 AgentPort 产品可行性的重新评估</p>
+        <div class="meta">版本：2026-06-30 · 本文为公开资料整理与产品研究，不构成投资、法律或合规建议。</div>
+      </header>
+
+      <section id="summary">
+        <h2>摘要</h2>
+        <p>Polymarket 已经从加密原生预测市场，演化为事件概率定价基础设施的一类代表。它的核心价值不只是让用户交易事件结果，而是把政治、宏观、体育、科技、文化等不确定事件转化为可观察、可比较、可回测的概率信号。</p>
+        <p>原报告的大方向是成立的：预测市场正在主流化，Polymarket 具有流动性、品牌、数据和叙事优势；Agent 与预测市场之间也确实存在结合点。但原报告存在明显问题：部分交易量和活跃用户数据口径不可靠，把媒体报道或未来推演写成既成事实，对 API、收费、监管和 marketplace 冷启动的判断偏乐观。</p>
+        <div class="note good">
+          <strong>本版核心结论：</strong>不要做“中文版 Polymarket”。更可行的路线是做一个面向 AI Agent 的概率与风险判断层：先自营预测数据、解释、回测和风险评分 API，再逐步扩展为 Web3 服务发现与 X402 按次付费平台。
+        </div>
+      </section>
+
+      <section id="audit">
+        <h2>一、事实校订</h2>
+        <p>为了避免“看起来很像事实”的叙事误导读者，本节将原报告中的关键表述分为“需更正”“应降级为推测”和“基本准确”。</p>
+
+        <h3>1. 需要更正或降级表述的内容</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>原报告表述</th>
+              <th>判断</th>
+              <th>更准确的写法</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>2024 美国大选期间月活交易者突破 60 万、月交易量超 80 亿美元。</td>
+              <td>大概率失实或口径混淆</td>
+              <td>公开报道与行业数据更常见的口径是：2024 年美国总统大选相关市场累计成交约 36-37 亿美元；2024 年 11 月 Polymarket 月成交高点约 26 亿美元量级，活跃交易者高点约 30 万量级。若使用 80 亿美元，需要明确是哪个月份、全站成交、滚动周期还是后续年份数据。</td>
+            </tr>
+            <tr>
+              <td>NYSE 投资 Polymarket 20 亿美元，估值 80 亿美元。</td>
+              <td>主体需修正</td>
+              <td>准确表述是 ICE，即 Intercontinental Exchange，NYSE 的母公司，宣布拟向 Polymarket 投资最高 20 亿美元，对应约 80 亿美元 pre-money valuation。不能简写成“NYSE 投资”。</td>
+            </tr>
+            <tr>
+              <td>Polymarket US 是 CFTC 注册的指定合约市场。</td>
+              <td>方向正确，但需补路径</td>
+              <td>CFTC 文件显示 QCX LLC d/b/a Polymarket US 的 DCM 指定日期为 2025-07-09。Polymarket 是通过收购 QCEX/QCX 获得美国合规化路径，而不是原国际版自然转为美国合规交易所。</td>
+            </tr>
+            <tr>
+              <td>Polymarket API 需要注册账号 + API Key。</td>
+              <td>部分失实</td>
+              <td>公开市场数据、订单簿、价格等读取端点通常不需要认证；下单、撤单、账户和交易相关操作才需要凭证或签名。AgentPort 的价值不应建立在“Polymarket 数据 API 难以访问”这个前提上。</td>
+            </tr>
+            <tr>
+              <td>Polymarket 主要还没有收费，未来才打开费率开关。</td>
+              <td>需更新</td>
+              <td>Polymarket 文档已显示部分市场存在 taker fee，并用 maker rebates / taker rebates 改善流动性。更准确的说法是“从长期补贴与低费率，逐步进入部分品类收费和做市激励并存阶段”。</td>
+            </tr>
+            <tr>
+              <td>Meta 是最大潜在威胁，窗口只有 1-2 年。</td>
+              <td>应降级为情景推演</td>
+              <td>大型科技公司进入预测市场是合理假设，但截至本版日期，更适合作为“潜在情景”，不宜写成确定竞争格局。</td>
+            </tr>
+            <tr>
+              <td>Kalshi 220 亿美元估值，证明预测市场估值逻辑。</td>
+              <td>应标注报道口径</td>
+              <td>Kalshi 的高估值来自媒体报道和融资谈判信息，变化很快。应写为“据媒体报道”，并避免把单一融资估值直接当成赛道确定性。</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>2. 基本准确的内容</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>主题</th>
+              <th>核查结论</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>CFTC 2022 处罚</td>
+              <td>准确。CFTC 在 2022-01-03 要求 Polymarket 支付 140 万美元民事罚款，并停止不合规市场。</td>
+            </tr>
+            <tr>
+              <td>技术架构</td>
+              <td>基本准确。Polymarket 使用混合架构：链下 CLOB 撮合、EIP-712 订单签名、Polygon 链上结算、条件代币框架，以及 UMA 等结果结算机制。</td>
+            </tr>
+            <tr>
+              <td>X 官方合作</td>
+              <td>准确。X 在 2025 年宣布 Polymarket 为其官方预测市场合作伙伴。</td>
+            </tr>
+            <tr>
+              <td>MLB 合作</td>
+              <td>准确。MLB 在 2026-03-19 宣布 Polymarket 成为官方预测市场交易所合作伙伴，并配套完整性框架。</td>
+            </tr>
+            <tr>
+              <td>DOJ/CFTC 旧调查结束</td>
+              <td>准确但需补充。2025-07 有报道显示 DOJ/CFTC 对 Polymarket 的相关调查结束且未起诉；但 2026-06 又出现新的监管调查报道，风险并未消失。</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="note warning">
+          <strong>写作建议：</strong>报告里所有融资、估值、用户规模、市场份额、交易量、监管状态，都应写明“截至日期、数据来源、口径”。预测市场本身就是高波动赛道，最怕把流动新闻写成静态结论。
+        </div>
+      </section>
+
+      <section id="market">
+        <h2>二、市场与业务判断</h2>
+        <p>Polymarket 的护城河不是“链上”本身，而是流动性、品牌心智、市场覆盖、数据沉淀和媒体引用形成的复合网络效应。越多用户看 Polymarket 价格，越多交易者愿意在那里报价；越多交易者报价，价格越被媒体引用；越被引用，越像公共概率信号。</p>
+
+        <h3>1. 为什么预测市场在 2024-2026 年突然主流化</h3>
+        <ul>
+          <li><strong>事件合约从小众工具进入新闻叙事。</strong>选举、利率、通胀、体育、战争、公司事件都适合被概率化表达。</li>
+          <li><strong>传统民调和专家预测的信任下降。</strong>用户更愿意看“用钱投票”的市场价格。</li>
+          <li><strong>加密基础设施成熟。</strong>稳定币、钱包、低成本链和链下撮合降低了交易摩擦。</li>
+          <li><strong>监管路径开始分叉。</strong>Kalshi 走合规交易所路径，Polymarket 则形成“国际加密原生 + 美国合规化”的双线结构。</li>
+          <li><strong>AI 需要结构化概率输入。</strong>Agent 做规划、交易、研究和风控时，概率比新闻标题更容易进入决策模型。</li>
+        </ul>
+
+        <h3>2. Polymarket 的真实优势</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>优势</th>
+              <th>说明</th>
+              <th>是否可复制</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>流动性网络效应</td>
+              <td>热门市场的深度、价差和成交速度形成交易者惯性。</td>
+              <td>难，但不是不可复制；合规交易所和大型平台可通过补贴追赶。</td>
+            </tr>
+            <tr>
+              <td>品牌心智</td>
+              <td>“预测市场 = Polymarket”的媒体引用正在形成。</td>
+              <td>较难复制，需要热点事件长期积累。</td>
+            </tr>
+            <tr>
+              <td>市场创建与运营能力</td>
+              <td>事件标题、结算条件、品类运营、做市激励决定市场质量。</td>
+              <td>可学习，但细节密集。</td>
+            </tr>
+            <tr>
+              <td>数据资产</td>
+              <td>历史价格、成交、流动性、市场结果可用于概率校准和模型训练。</td>
+              <td>可被聚合，但原始交易数据和用户行为更有价值。</td>
+            </tr>
+            <tr>
+              <td>合规转型叙事</td>
+              <td>通过 Polymarket US 进入美国合规市场，提升机构可接受度。</td>
+              <td>可复制，但牌照、监管关系和执行成本高。</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>3. 商业模式应如何理解</h3>
+        <p>Polymarket 的商业化不应只被理解为“交易手续费”。未来更有价值的收入层可能包括：</p>
+        <ul>
+          <li><strong>交易费与流动性激励：</strong>部分市场 taker fee、maker rebates、taker rebates 共同调节流动性。</li>
+          <li><strong>数据分发：</strong>向金融终端、媒体、研究机构提供事件概率、历史数据和情绪指标。</li>
+          <li><strong>机构工具：</strong>风控、结算争议监控、合规报告、API 和白标服务。</li>
+          <li><strong>体育与娱乐合作：</strong>官方数据、品牌曝光、完整性监控和粉丝互动。</li>
+        </ul>
+      </section>
+
+      <section id="risk">
+        <h2>三、风险与监管</h2>
+        <p>预测市场的核心风险不是单一监管文件，而是“交易、博彩、衍生品、消费者保护、市场诚信、广告合规、体育完整性”多条线并行。越主流，越会被监管以更细的粒度审视。</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>风险</th>
+              <th>具体表现</th>
+              <th>对创业者的启示</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>监管边界</td>
+              <td>政治、体育、战争、公共卫生等事件可能触碰不同监管红线。</td>
+              <td>信息服务、数据解释和工具层相对安全；撮合交易和代客交易风险显著上升。</td>
+            </tr>
+            <tr>
+              <td>结算争议</td>
+              <td>市场标题和 resolution criteria 若不清楚，会导致用户信任受损。</td>
+              <td>可做“结算规则风险评分”和“争议概率预警”。</td>
+            </tr>
+            <tr>
+              <td>市场操纵与内幕信息</td>
+              <td>小流动性市场容易被大户短期推动价格，体育和公司事件也可能有内幕交易。</td>
+              <td>异常交易检测、鲸鱼追踪、相关市场套利监控有商业价值。</td>
+            </tr>
+            <tr>
+              <td>安全风险</td>
+              <td>前端、钱包、签名、第三方服务供应链都可能成为攻击面。</td>
+              <td>Agent 调用交易或支付接口时必须有预算、白名单、权限和审计日志。</td>
+            </tr>
+            <tr>
+              <td>伦理与公共舆论</td>
+              <td>灾难、战争、名人生死等市场容易引发“用苦难赌博”的批评。</td>
+              <td>产品应支持事件黑名单、敏感品类隔离和解释性展示。</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="note danger">
+          <strong>重要判断：</strong>“不直接做交易，只做信息服务”能降低风险，但不能自动等于“极低风险”。如果产品提供交易建议、自动执行、收益承诺、或面向受限地区用户规避访问限制，监管风险会迅速上升。
+        </div>
+      </section>
+
+      <section id="depth">
+        <h2>四、还应补充的深度</h2>
+        <p>原报告覆盖面很广，但真正能拉开研究深度的不是更多叙事，而是对市场机制和产品需求的拆解。</p>
+
+        <h3>1. 市场微观结构</h3>
+        <p>应补充订单簿深度、价差、滑点、做市商激励、成交集中度、鲸鱼账户影响、相关市场套利等指标。预测市场价格不是天然等于真实概率，它还包含流动性成本、资金约束、情绪偏差和操纵噪声。</p>
+
+        <h3>2. 概率质量评估</h3>
+        <p>真正的“信息基础设施”必须可校准。建议用 Brier score、log loss、校准曲线、事件类别表现、时间衰减表现来评估不同预测源，而不是只看“某次大选猜对了”。</p>
+
+        <h3>3. Agent 需求链路</h3>
+        <p>Agent 不是天然会为概率买单。必须明确概率进入哪个工作流：交易决策、研究摘要、新闻解释、企业风控、政策监测、体育内容、还是个人助理提醒。不同工作流的频次、价格和准确性要求完全不同。</p>
+
+        <h3>4. 合规分层</h3>
+        <p>需要把产品能力拆成四层：只读数据、分析解释、交易建议、自动执行。每升一层，合规和安全要求都会显著增加。</p>
+      </section>
+
+      <section id="ideas">
+        <h2>五、值得做的产品机会</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>产品方向</th>
+              <th>核心价值</th>
+              <th>优先级</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Prediction API / Probability Layer</td>
+              <td>聚合 Polymarket、Kalshi、新闻、宏观数据和赔率，输出结构化概率、变化原因、置信度和来源。</td>
+              <td>最高</td>
+            </tr>
+            <tr>
+              <td>市场解释层</td>
+              <td>解释“为什么概率从 44% 变成 38%”，把价格变化转成中文因果链。</td>
+              <td>最高</td>
+            </tr>
+            <tr>
+              <td>结算规则审计工具</td>
+              <td>判断市场标题与结算条件是否清晰，识别 oracle 争议风险。</td>
+              <td>高</td>
+            </tr>
+            <tr>
+              <td>预测市场风控 SaaS</td>
+              <td>监控鲸鱼账户、异常价格、疑似内幕交易、跨市场套利关系。</td>
+              <td>高</td>
+            </tr>
+            <tr>
+              <td>Agent 决策回测平台</td>
+              <td>让 Agent 使用不同预测源做决策，并评估哪个源在什么类别上更准。</td>
+              <td>高</td>
+            </tr>
+            <tr>
+              <td>中文事件概率服务</td>
+              <td>覆盖 Polymarket 不一定重点做的华语宏观、文化、公司和体育事件；只做信息服务，不撮合交易。</td>
+              <td>中高</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="agentport">
+        <h2>六、AgentPort 可行性评估</h2>
+        <p>AgentPort 的原始设想是：面向 AI Agent 的 Web3 API 服务聚合与发现平台，支持服务搜索、能力比较、按次调用，并通过 X402 实现自动化支付结算。这个方向有机会，但不宜一开始就做成“大而全的 Web3 API marketplace”。</p>
+
+        <div class="score">
+          <div class="metric"><b>7/10</b><span>战略方向：Agent 支付与服务发现是早期但真实的基础设施机会。</span></div>
+          <div class="metric"><b>5/10</b><span>平台冷启动：双边 marketplace 难度高，早期应自营服务。</span></div>
+          <div class="metric"><b>8/10</b><span>预测切口：概率数据高频、低单价、可回测，适合展示 X402。</span></div>
+          <div class="metric"><b>6/10</b><span>商业化：微支付有叙事，但企业客户仍需要 SLA、发票和传统账户体系。</span></div>
+        </div>
+
+        <h3>1. 为什么方向成立</h3>
+        <ul>
+          <li><strong>Agent 需要外部能力。</strong>模型本身不能实时获取市场数据、链上状态、风险评分和交易执行能力。</li>
+          <li><strong>Web3 API 碎片化。</strong>链上数据、风控、交易、预言机、预测市场、钱包和支付工具分散在不同供应商。</li>
+          <li><strong>X402 适合机器支付。</strong>HTTP 402 + 稳定币支付让 API 按次调用、自动结算、无账号试用变得更自然。</li>
+          <li><strong>预测数据是好入口。</strong>它可验证、时效强、适合按次调用，也容易做出“服务质量比较”。</li>
+        </ul>
+
+        <h3>2. 为什么不能直接做大平台</h3>
+        <ul>
+          <li><strong>没有调用量，服务商不会来。</strong>没有服务商，Agent 开发者也不会来，这是典型双边冷启动困境。</li>
+          <li><strong>API Key 不是最大痛点。</strong>开发者更关心稳定性、文档、响应质量、数据许可、SLA 和价格。</li>
+          <li><strong>微支付不是全部商业模式。</strong>0.001 美元一次适合演示，但高质量预测解释、风控、回测和交易前检查应该按价值定价。</li>
+          <li><strong>自动支付需要权限控制。</strong>Agent 不能无限制花钱，必须有预算上限、白名单、调用审计和异常暂停。</li>
+        </ul>
+
+        <div class="note">
+          <strong>定位建议：</strong>AgentPort 早期不要讲“Web3 API 版 RapidAPI”，而要讲“Agent 可调用的概率与风险判断层”。先把一个高频、高价值、可评估的垂直能力做透，再把支付和发现能力平台化。
+        </div>
+      </section>
+
+      <section id="product">
+        <h2>七、AgentPort 产品方案</h2>
+        <h3>1. MVP 产品形态</h3>
+        <p>第一版应由三部分组成：Prediction API、MCP Server、Web Dashboard。</p>
+
+        <pre>Agent / Developer
+  |
+  |  MCP Tool / REST API / x402 paid request
+  v
+AgentPort Probability Layer
+  |-- Event search: 搜索事件与相似市场
+  |-- Probability feed: 多源概率、成交量、流动性
+  |-- Explanation engine: 中文解释概率变化原因
+  |-- Quality score: 历史准确率、延迟、覆盖率、结算风险
+  |-- Payment layer: x402 按次付费 + 传统 API Key 兼容
+  v
+Sources: Polymarket / Kalshi / news / macro data / social signals / custom models</pre>
+
+        <h3>2. 核心 API</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>接口</th>
+              <th>能力</th>
+              <th>定价建议</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>/events/search</td>
+              <td>自然语言搜索事件、市场和相关问题。</td>
+              <td>免费或极低价，用于获客。</td>
+            </tr>
+            <tr>
+              <td>/probability/latest</td>
+              <td>返回某事件的多源概率、更新时间、成交量、流动性。</td>
+              <td>$0.001-$0.01/次。</td>
+            </tr>
+            <tr>
+              <td>/probability/explain</td>
+              <td>解释概率变化原因，引用新闻和市场变化。</td>
+              <td>$0.02-$0.20/次。</td>
+            </tr>
+            <tr>
+              <td>/market/risk-score</td>
+              <td>评估结算歧义、流动性不足、操纵风险。</td>
+              <td>$0.01-$0.10/次。</td>
+            </tr>
+            <tr>
+              <td>/backtest/source</td>
+              <td>按事件类别回测不同预测源的表现。</td>
+              <td>企业版或高价单次。</td>
+            </tr>
+            <tr>
+              <td>/alerts/create</td>
+              <td>创建概率变化、价差、异常成交提醒。</td>
+              <td>按月或按提醒量收费。</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>3. 数据质量评分</h3>
+        <p>AgentPort 真正的壁垒不是把 API 列出来，而是告诉 Agent “哪个服务在什么场景下更可信”。建议评分体系包括：</p>
+        <ul>
+          <li><strong>Accuracy：</strong>Brier score、log loss、校准曲线。</li>
+          <li><strong>Coverage：</strong>事件覆盖、语言覆盖、品类覆盖。</li>
+          <li><strong>Freshness：</strong>更新时间、延迟、实时性。</li>
+          <li><strong>Liquidity：</strong>成交量、价差、深度、滑点。</li>
+          <li><strong>Resolution Risk：</strong>结算条件清晰度、争议历史、oracle 风险。</li>
+          <li><strong>Cost：</strong>单次价格、批量价格、企业价格。</li>
+        </ul>
+
+        <h3>4. 支付策略</h3>
+        <p>X402 是产品差异化，但早期不能只支持 X402。建议同时支持三种模式：</p>
+        <table>
+          <thead>
+            <tr>
+              <th>模式</th>
+              <th>适用对象</th>
+              <th>理由</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>X402 按次付费</td>
+              <td>Agent、黑客松、自动化脚本、Web3 开发者。</td>
+              <td>最能体现 Agent-native 和机器支付。</td>
+            </tr>
+            <tr>
+              <td>传统 API Key + 充值</td>
+              <td>普通开发者、小团队。</td>
+              <td>降低试用门槛，便于预算管理。</td>
+            </tr>
+            <tr>
+              <td>企业套餐</td>
+              <td>基金、媒体、研究机构、交易团队。</td>
+              <td>需要 SLA、权限、发票、审计和定制数据。</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="gtm">
+        <h2>八、推广与运营方案</h2>
+        <h3>1. 目标用户分层</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>用户</th>
+              <th>痛点</th>
+              <th>触达方式</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Web3 研究/交易 Agent 开发者</td>
+              <td>需要实时概率、事件搜索、风险评分和可调用工具。</td>
+              <td>MCP Server、SDK、示例 Agent、黑客松。</td>
+            </tr>
+            <tr>
+              <td>中文加密研究团队/KOL/媒体</td>
+              <td>需要把英文预测市场转成中文解释和图表。</td>
+              <td>事件页、嵌入组件、每周榜单。</td>
+            </tr>
+            <tr>
+              <td>小型基金/做市/风控团队</td>
+              <td>需要异常监控、概率变化、结算风险和历史回测。</td>
+              <td>企业 dashboard、私域试用、定制报告。</td>
+            </tr>
+            <tr>
+              <td>Agent 平台与钱包</td>
+              <td>需要可展示的 x402 支付场景和高频工具。</td>
+              <td>联合 demo、生态合作、Revenue share。</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>2. 增长动作</h3>
+        <ul>
+          <li><strong>公开榜单：</strong>每周发布 Best Prediction APIs by Accuracy，按品类比较预测源。</li>
+          <li><strong>事件专题页：</strong>美联储、选举、世界杯、Token TGE、宏观数据，每个事件都有概率、变化解释、API endpoint。</li>
+          <li><strong>开发者挑战：</strong>奖励用 AgentPort API 构建的预测 Agent，按真实调用量和实际效果评奖。</li>
+          <li><strong>MCP 生态上架：</strong>把 AgentPort 作为 Claude、Cursor、OpenAI Agents SDK、LangChain 等工具链的可调用服务。</li>
+          <li><strong>中文内容矩阵：</strong>每日概率变化、每周准确率榜、重大事件复盘，形成长期 SEO 和社媒传播。</li>
+          <li><strong>服务商计划：</strong>等自营服务有真实调用量后，再邀请第三方模型、链上数据商、风控商上架。</li>
+        </ul>
+
+        <h3>3. 北极星指标</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>阶段</th>
+              <th>核心指标</th>
+              <th>健康阈值</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>MVP</td>
+              <td>周活开发者、API 调用次数、事件搜索成功率。</td>
+              <td>20 个真实开发者、每周 1 万次调用、搜索命中率超过 80%。</td>
+            </tr>
+            <tr>
+              <td>早期商业化</td>
+              <td>付费转化、重复调用率、解释接口占比。</td>
+              <td>10 个付费团队、30 日留存超过 35%。</td>
+            </tr>
+            <tr>
+              <td>平台化</td>
+              <td>第三方服务商数、服务商收入、服务质量评分覆盖率。</td>
+              <td>20 个服务商、50% 以上收入来自非自营服务。</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="roadmap">
+        <h2>九、路线图</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>阶段</th>
+              <th>时间</th>
+              <th>核心产出</th>
+              <th>不做什么</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Phase 0：垂直 MVP</td>
+              <td>4-6 周</td>
+              <td>Prediction API、MCP Server、x402 demo、10-20 个高质量事件页。</td>
+              <td>不开放 marketplace，不做自动交易。</td>
+            </tr>
+            <tr>
+              <td>Phase 1：质量比较</td>
+              <td>2-3 个月</td>
+              <td>多源概率比较、Brier score、结算风险评分、中文解释引擎。</td>
+              <td>不追求覆盖所有 Web3 API。</td>
+            </tr>
+            <tr>
+              <td>Phase 2：企业场景</td>
+              <td>3-6 个月</td>
+              <td>风控 dashboard、异常提醒、历史回测、团队权限和审计。</td>
+              <td>不承诺收益，不做代客交易。</td>
+            </tr>
+            <tr>
+              <td>Phase 3：平台开放</td>
+              <td>6-12 个月</td>
+              <td>第三方服务商 SDK、服务质量认证、分成结算、更多 Web3 数据品类。</td>
+              <td>不让未验证服务商直接进入推荐流。</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="note good">
+          <strong>最终判断：</strong>AgentPort 可行，但应先成为“Agent 可调用的概率与风险判断层”，再成为 Web3 服务发现平台。预测市场是入口，X402 是支付基础设施，长期护城河是数据质量、评估体系、工作流嵌入和被 Agent 反复调用的习惯。
+        </div>
+      </section>
+
+      <section id="sources">
+        <h2>资料来源</h2>
+        <ul class="source-list">
+          <li><a href="https://www.cftc.gov/PressRoom/PressReleases/8478-22">CFTC: Polymarket 2022 enforcement action and $1.4 million civil monetary penalty</a></li>
+          <li><a href="https://www.cftc.gov/IndustryOversight/IndustryFilings/TradingOrganizations/49571">CFTC: QCX LLC d/b/a Polymarket US DCM filing</a></li>
+          <li><a href="https://ir.theice.com/press/news-details/2025/ICE-Announces-Strategic-Investment-in-Polymarket/default.aspx">ICE: Strategic investment in Polymarket</a></li>
+          <li><a href="https://docs.polymarket.com/trading/overview">Polymarket Docs: CLOB trading overview</a></li>
+          <li><a href="https://docs.polymarket.com/trading/fees">Polymarket Docs: Trading fees</a></li>
+          <li><a href="https://docs.polymarket.com/concepts/order-lifecycle">Polymarket Docs: Order lifecycle</a></li>
+          <li><a href="https://www.mlb.com/press-release/press-release-mlb-names-polymarket-exclusive-prediction-market-exchange-partner-and-signs-agreement-with-cftc-to-establish-integrity-framework">MLB: Polymarket partnership announcement</a></li>
+          <li><a href="https://www.cnbc.com/2025/07/15/polymarket-investigations-doj-cftc-betting-market.html">CNBC: DOJ/CFTC investigations ended without charges in 2025</a></li>
+          <li><a href="https://www.forbes.com/sites/aliciapark/2026/06/26/regulators-are-investigating-polymarket-reports-say-as-senators-demand-a-federal-probe/">Forbes: 2026 reports of renewed regulatory scrutiny</a></li>
+          <li><a href="https://docs.cdp.coinbase.com/x402/welcome">Coinbase Developer Docs: x402 overview</a></li>
+          <li><a href="https://docs.cdp.coinbase.com/x402/core-concepts/http-402">Coinbase Developer Docs: HTTP 402 and machine-to-machine payments</a></li>
+        </ul>
+      </section>
+
+      <footer>
+        <p>本文为校订版研究报告，重点在于修正数据口径、区分事实与推测，并形成 AgentPort 的产品化建议。公开资料可能继续变化，发布后仍建议按月复核关键事实。</p>
+      </footer>
+    </main>
+  </div>
+</body>
+</html>
